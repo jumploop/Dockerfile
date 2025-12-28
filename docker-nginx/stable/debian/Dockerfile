@@ -3,15 +3,15 @@
 #
 # PLEASE DO NOT EDIT IT DIRECTLY.
 #
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
-ENV NGINX_VERSION   1.27.1
-ENV NJS_VERSION     0.8.5
-ENV NJS_RELEASE     1~bookworm
-ENV PKG_RELEASE     1~bookworm
-ENV DYNPKG_RELEASE  2~bookworm
+ENV NGINX_VERSION   1.28.1
+ENV NJS_VERSION     0.9.4
+ENV NJS_RELEASE     1~trixie
+ENV PKG_RELEASE     1~trixie
+ENV DYNPKG_RELEASE  1~trixie
 
 RUN set -x \
 # create nginx user/group first, to be consistent throughout docker variants
@@ -30,11 +30,11 @@ RUN set -x \
         pgp.mit.edu \
     ; do \
         echo "Fetching GPG key $NGINX_GPGKEY from $server"; \
-        gpg1 --keyserver "$server" --keyserver-options timeout=10 --recv-keys "$NGINX_GPGKEY" && found=yes && break; \
+        gpg1 --batch --keyserver "$server" --keyserver-options timeout=10 --recv-keys "$NGINX_GPGKEY" && found=yes && break; \
     done; \
     test -z "$found" && echo >&2 "error: failed to fetch GPG key $NGINX_GPGKEY" && exit 1; \
     done; \
-    gpg1 --export "$NGINX_GPGKEYS" > "$NGINX_GPGKEY_PATH" ; \
+    gpg1 --batch --export $NGINX_GPGKEYS > "$NGINX_GPGKEY_PATH" ; \
     rm -rf "$GNUPGHOME"; \
     apt-get remove --purge --auto-remove -y gnupg1 && rm -rf /var/lib/apt/lists/* \
     && dpkgArch="$(dpkg --print-architecture)" \
@@ -48,29 +48,51 @@ RUN set -x \
     && case "$dpkgArch" in \
         amd64|arm64) \
 # arches officialy built by upstream
-            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ trixie nginx" >> /etc/apt/sources.list.d/nginx.list \
             && apt-get update \
             ;; \
         *) \
 # we're on an architecture upstream doesn't officially build for
-# let's build binaries from the published source packages
-            echo "deb-src [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
-            \
+# let's build binaries from the published packaging sources
 # new directory for storing sources and .deb files
-            && tempDir="$(mktemp -d)" \
+            tempDir="$(mktemp -d)" \
             && chmod 777 "$tempDir" \
 # (777 to ensure APT's "_apt" user can access it too)
             \
 # save list of currently-installed packages so build dependencies can be cleanly removed later
             && savedAptMark="$(apt-mark showmanual)" \
             \
-# build .deb files from upstream's source packages (which are verified by apt-get)
+# build .deb files from upstream's packaging sources
             && apt-get update \
-            && apt-get build-dep -y $nginxPackages \
+            && apt-get install --no-install-recommends --no-install-suggests -y \
+                curl \
+                devscripts \
+                equivs \
+                git \
+                libxml2-utils \
+                lsb-release \
+                xsltproc \
             && ( \
                 cd "$tempDir" \
-                && DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" \
-                    apt-get source --compile $nginxPackages \
+                && REVISION="${NGINX_VERSION}-${PKG_RELEASE}" \
+                && REVISION=${REVISION%~*} \
+                && curl -f -L -O https://github.com/nginx/pkg-oss/archive/${REVISION}.tar.gz \
+                && PKGOSSCHECKSUM="4d43d5eadf39a2428e91a4e6fde0188f1cfb76354598d818d2ef2f8ff5cfa8d65993248b19a2d7ae663798d2362905e63ebd5dca6ca82cabc2831631d0e079ea *${REVISION}.tar.gz" \
+                && if [ "$(openssl sha512 -r ${REVISION}.tar.gz)" = "$PKGOSSCHECKSUM" ]; then \
+                    echo "pkg-oss tarball checksum verification succeeded!"; \
+                else \
+                    echo "pkg-oss tarball checksum verification failed!"; \
+                    exit 1; \
+                fi \
+                && tar xzvf ${REVISION}.tar.gz \
+                && cd pkg-oss-${REVISION} \
+                && cd debian \
+                && for target in base module-geoip module-image-filter module-njs module-xslt; do \
+                    make rules-$target; \
+                    mk-build-deps --install --tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes" \
+                        debuild-$target/nginx-$NGINX_VERSION/debian/control; \
+                done \
+                && make base module-geoip module-image-filter module-njs module-xslt \
             ) \
 # we don't remove APT lists here because they get re-downloaded and removed later
             \
