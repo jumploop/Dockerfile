@@ -24,7 +24,6 @@ jobs:
           docker login -u "$DOCKER_USERNAME" -p "$DOCKER_TOKEN"
           root=$(pwd)
           cd ${root}/docker-serverstatus-bot/stable/alpine/serverchan
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/serverstatus_bot:serverchan --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/serverstatus_bot:serverchan --push .
           cd ${root}/docker-serverstatus-bot/stable/alpine/telegram
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/serverstatus_bot:latest --push .
-
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/serverstatus_bot:latest --push  .

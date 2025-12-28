@@ -18,7 +18,7 @@ RUN apt-get update  \
 
 
 # glibc env run
-FROM looprt/nginx:ubuntu-latest
+FROM jumploop/nginx:ubuntu-latest
 
 RUN mkdir -p /ServerStatus/server && ln -sf /dev/null /var/log/nginx/access.log && ln -sf /dev/null /var/log/nginx/error.log
 

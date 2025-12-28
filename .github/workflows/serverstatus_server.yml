@@ -24,8 +24,8 @@ jobs:
           docker login -u "$DOCKER_USERNAME" -p "$DOCKER_TOKEN"
           root=$(pwd)
           cd ${root}/docker-serverstatus/stable/ubuntu/caddy
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/serverstatus_server:ubuntu-caddy --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/serverstatus:ubuntu-caddy --push .
           cd ${root}/docker-serverstatus/stable/ubuntu/nginx
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/serverstatus_server:ubuntu-latest --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/serverstatus:ubuntu-latest --push .
           cd ${root}/docker-serverstatus/stable/debian/caddy
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/serverstatus_server:caddy --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/serverstatus:caddy --push .

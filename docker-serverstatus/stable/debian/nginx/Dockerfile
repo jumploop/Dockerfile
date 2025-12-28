@@ -1,5 +1,5 @@
 # The Dockerfile for build localhost source, not git repo
-FROM debian:stable-slim AS builder
+FROM debian:bookworm AS builder
 
 LABEL maintainer="jumploop"
 LABEL version="0.0.1"

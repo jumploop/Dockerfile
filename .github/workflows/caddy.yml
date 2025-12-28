@@ -24,7 +24,7 @@ jobs:
           docker login -u "$DOCKER_USERNAME" -p "$DOCKER_TOKEN"
           root=$(pwd)
           cd ${root}/docker-caddy/stable/debian
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/caddy:latest --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/caddy:latest --push .
           cd ${root}/docker-caddy/stable/ubuntu
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/caddy:ubuntu-latest --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/caddy:ubuntu-latest --push .
 

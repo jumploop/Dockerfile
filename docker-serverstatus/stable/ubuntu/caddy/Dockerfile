@@ -18,7 +18,7 @@ RUN apt-get update  \
 
 
 # glibc env run
-FROM looprt/caddy:ubuntu-latest
+FROM jumploop/caddy:ubuntu-latest
 
 RUN mkdir -p /ServerStatus/server
 

@@ -24,7 +24,7 @@ jobs:
           docker login -u "$DOCKER_USERNAME" -p "$DOCKER_TOKEN"
           root=$(pwd)
           cd ${root}/docker-nginx/stable/debian
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/nginx:latest --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/nginx:latest --push .
           cd ${root}/docker-nginx/stable/ubuntu
-          docker buildx build --platform linux/amd64,linux/arm64 -t looprt/nginx:ubuntu-latest --push .
+          docker buildx build --platform linux/amd64,linux/arm64 -t jumploop/nginx:ubuntu-latest --push .
 

@@ -1,5 +1,5 @@
 # 基础镜像选用Debian最新稳定版
-FROM debian:stable-slim
+FROM debian:bookworm
 
 # 维护者信息
 LABEL maintainer="jumploop"
